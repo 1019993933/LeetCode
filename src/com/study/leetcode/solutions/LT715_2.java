@@ -1,4 +1,11 @@
-//Range 模块是跟踪数字范围的模块。你的任务是以一种有效的方式设计和实现以下接口。 
+package com.study.leetcode.solutions;//Range 模块是跟踪数字范围的模块。你的任务是以一种有效的方式设计和实现以下接口。
+
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.TreeSet;
+
 //
 // 
 // addRange(int left, int right) 添加半开区间 [left, right)，跟踪该区间中的每个实数。添加与当前跟踪的数字部分重叠
@@ -33,57 +40,59 @@
 //
 // 
 // Related Topics 线段树 Ordered Map 
-// 👍 70 👎 0
-
-import com.sun.deploy.config.JREInfo;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TreeSet;
-
+// 👍 69 👎 0
 //leetcode submit region begin(Prohibit modification and deletion)
-class RangeModule {
-    TreeSet<Range> set = new TreeSet<>();
+class LT715_2 {
+    @Test
+    public void test() {
+        LT715_2 obj = new LT715_2();
+        obj.addRange(10, 20);
+        obj.removeRange(14, 16);
+        boolean b = obj.queryRange(10, 14);
+        boolean b1 = obj.queryRange(13, 15);
+        boolean b2 = obj.queryRange(16, 17);
+        System.out.println("fdas");
+    }
 
-    public RangeModule() {
+    TreeSet<Range> ranges = new TreeSet<>();
+
+    public LT715_2() {
     }
 
     public void addRange(int left, int right) {
-        Iterator<Range> iterator = set.tailSet(new Range(0, left)).iterator();
-        while(iterator.hasNext()){
-            Range curRange = iterator.next();
-            if (curRange.left>right){
-                break;
-            }
-            left = Math.min(left, curRange.left);
-            right = Math.max(right, curRange.right);
-            iterator.remove();
+        Iterator<Range> ite = ranges.tailSet(new Range(0, left - 1)).iterator();
+        while (ite.hasNext()) {
+            Range range = ite.next();
+            if (range.left > right) break;
+            left = Math.min(left, range.left);
+            right = Math.max(right, range.right);
         }
-        set.add(new Range(left, right));
+        ranges.add(new Range(left, right));
     }
 
     public boolean queryRange(int left, int right) {
-        Range iv = set.higher(new Range(0, left));
-        return (iv != null && iv.left <= left && right <= iv.right);
+        Range range = ranges.higher(new Range(0, left));
+        return (range != null && range.left <= left && range.right >= right);
     }
 
     public void removeRange(int left, int right) {
-        Iterator<Range> itr = set.tailSet(new Range(0, left)).iterator();
-        ArrayList<Range> todo = new ArrayList();
-        while (itr.hasNext()) {
-            Range iv = itr.next();
-            if (right < iv.left) break;
-            if (iv.left < left) todo.add(new Range(iv.left, left));
-            if (right < iv.right) todo.add(new Range(right, iv.right));
-            itr.remove();
+        Iterator<Range> ite = ranges.tailSet(new Range(0, left)).iterator();
+        ArrayList<Range> lst = new ArrayList<>();
+        while (ite.hasNext()) {
+            Range range = ite.next();
+            if (range.left > right) break;
+            if (range.left < left) lst.add(new Range(range.left, left));
+            if (range.right > right) lst.add(new Range(right, range.right));
         }
-        for (Range iv: todo) set.add(iv);
+        for (Range range : lst) {
+            ranges.add(range);
+        }
+
     }
 
     class Range implements Comparable<Range> {
-        private int left;
-        private int right;
+        private final int right;
+        private final int left;
 
         public Range(int left, int right) {
             this.left = left;
@@ -91,13 +100,12 @@ class RangeModule {
         }
 
         @Override
-        public int compareTo(Range that){
-            if (this.right == that.right) return this.left - that.left;
-            return this.right - that.right;
+        public int compareTo(Range o) {
+            if (this.right == o.right) return this.left - o.left;
+            return this.right - o.right;
         }
     }
 }
-
 /**
  * Your RangeModule object will be instantiated and called as such:
  * RangeModule obj = new RangeModule();

@@ -40,13 +40,68 @@
 
 //leetcode submit region begin(Prohibit modification and deletion)
 class MyCalendarThree {
+    private TreeSet<Range> ranges = new TreeSet<>();
+
+    private int maxBook = 0;
 
     public MyCalendarThree() {
 
     }
-    
-    public int book(int start, int end) {
 
+    public int book(int start, int end) {
+        Iterator<Range> ite = ranges.tailSet(new Range(0, start+1, 0)).iterator();
+
+        List<Range> lst = new ArrayList<>();
+        while (ite.hasNext()) {
+            Range range = ite.next();
+            if (range.left > end) {
+                break;
+            }
+            if (start >= end) {
+                break;
+            }
+
+            lst.add(new Range(Math.min(range.left, start), Math.max(range.left, start), 1));
+            lst.add(new Range(Math.max(range.left, start), Math.min(range.right, end), range.val+1));
+            start = Math.min(range.right, end);
+            if (start==end && start<range.right){
+                range.left = start;
+            }
+            else {
+                ite.remove();
+            }
+        }
+
+        if (start < end) {
+            lst.add(new Range(start, end, 1));
+        }
+
+        for (Range range : lst) {
+            if (range.left < range.right) {
+                maxBook = Math.max(maxBook, range.val);
+                ranges.add(range);
+            }
+        }
+
+        //TODO:
+        return maxBook;
+    }
+
+    class Range implements Comparable<Range> {
+        private int left;
+        private int right;
+        private int val;
+
+        public Range(int left, int right, int val) {
+            this.left = left;
+            this.right = right;
+            this.val = val;
+        }
+
+        @Override
+        public int compareTo(Range other) {
+            return this.right == other.right ? this.left - other.left : this.right - other.right;
+        }
     }
 }
 

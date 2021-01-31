@@ -22,10 +22,53 @@
 // 👍 313 👎 0
 
 
+import java.util.HashMap;
+
 //leetcode submit region begin(Prohibit modification and deletion)
 class Solution {
     public boolean containsDuplicate(int[] nums) {
+        if (nums==null || nums.length==0){
+            return false;
+        }
 
+        return contansDuplicate(nums, 0, nums.length-1);
+    }
+
+    public boolean contansDuplicate(int[] nums, int left, int right){
+        if (left==right) {
+            return false;
+        }
+
+        int mid = (left+right)>>1;
+        if (contansDuplicate(nums, left, mid)){
+            return true;
+        }
+        if (contansDuplicate(nums, mid+1, right)){
+            return true;
+        }
+
+        return merge(nums, left, mid, right);
+    }
+
+    private boolean merge(int[] nums, int left, int mid, int right) {
+        int i = left;
+        int j = mid+1;
+        int k = 0;
+        int[] data = new int[right-left+1];
+        while (i<=mid || j<=right){
+            if (i<=mid && j<=right) {
+                if (nums[i] == nums[j]) {
+                    return true;
+                }
+                data[k++] = nums[i]<nums[j]? nums[i++]: nums[j++];
+            } else if (i<=mid){
+                data[k++] = nums[i++];
+            } else{
+                data[k++] = nums[j++];
+            }
+        }
+        System.arraycopy(data, 0, nums, left, right-left+1);
+        return false;
     }
 }
 //leetcode submit region end(Prohibit modification and deletion)

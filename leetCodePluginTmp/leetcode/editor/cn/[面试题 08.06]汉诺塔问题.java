@@ -42,7 +42,7 @@ class Solution {
         hanota(A.size(), A, B, C);
     }
 
-  mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmv 0   private void hanota(int n, List<Integer> A, List<Integer> B, List<Integer> C)
+    private void hanota(int n, List<Integer> A, List<Integer> B, List<Integer> C)
     {
         if (n<=0){
             return;

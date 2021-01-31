@@ -65,7 +65,7 @@ import java.util.Stack;
 public class Solution {
     // you need to treat n as an unsigned value
     public int hammingWeight(int n) {
-        Stack
+        return  0;
     }
 }
 //leetcode submit region end(Prohibit modification and deletion)

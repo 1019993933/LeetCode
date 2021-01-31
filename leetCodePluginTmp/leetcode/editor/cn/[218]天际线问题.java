@@ -50,181 +50,274 @@ import java.util.*;
 
 // leetcode submit region begin(Prohibit modification and deletion)
 class Solution {
-    // 坐标与高度对应的MAP
-    HashMap<Integer, Integer> map = new HashMap<>();
-    HashMap<Integer, Integer> idxToPos = new HashMap<>();
-
-    // 坐标点集合，按从小到大
-    Set<Integer> set = new TreeSet<>();
-
-    //保存结果子区间的数组
-    List<TreeNode> resultList = new ArrayList<>();
-
     public List<List<Integer>> getSkyline(int[][] buildings) {
-        if (buildings == null || buildings.length == 0) {
-            return null;
-        }
+        SolutionWithLineSweep solution = new SolutionWithLineSweep();
+        return solution.getSkyline(buildings);
+    }
 
-        //建树
-        buildTree(buildings);
-        //更新
-        for (int[] building : buildings) {
-            update(1, building[0], building[1]-1, building[2]);
-        }
-        //查询，查询到所有子区间对应的值，再对子区间进行去重处理
-        query(1, min, max);
-        Collections.sort(resultList, (o1, o2)->{return o1.left-o2.left;});
+    public class SolutionWithLineSweep{
+        public class Point implements Comparable<Point>{
+            int x;
+            int height;
+            boolean isLeft;
+            Point pariPoint;
 
-        List<List<Integer>> lst = new ArrayList<List<Integer>>();
-        addTreeNode(lst, resultList.get(0));
-        TreeNode preNode = null;
-        for (TreeNode treeNode : resultList) {
-            if (preNode==null){
-                addTreeNode(lst, treeNode);
+            public Point(int x, int height, boolean isLeft, Point pariPoint){
+                this.x = x;
+                this.height = height;
+                this.isLeft = isLeft;
+                this.pariPoint = pariPoint;
             }
-            else{
-                if (!compare(preNode, treeNode)){
-                    addTreeNode(lst, treeNode);
+
+            public List<Integer> getList(int height){
+                List<Integer> lst = new ArrayList<>();
+                lst.add(x);
+                lst.add(height);
+                return lst;
+            }
+            @Override
+            public int compareTo(Point o) {
+                if (this.isLeft==o.isLeft && this.x==o.x && this.height==o.height){
+                    return 0;
+                }
+
+                if (this.x!=o.x){
+                    return this.x-o.x;
+                }
+
+                if (this.isLeft!=o.isLeft){
+                    return this.isLeft? 1: -1;
+                }
+
+                return this.height-o.height;
+            }
+
+            public int heightCompareTo(Point o){
+                return this.height - o.height;
+            }
+        }
+        public List<List<Integer>> getSkyline(int[][] buildings) {
+            List<List<Integer>> anslst = new ArrayList<List<Integer>>();
+            TreeSet<Point> set = new TreeSet<>();
+            TreeSet<Point> heights = new TreeSet<>();
+            for (int[] building : buildings) {
+                Point leftPoint = new Point(building[0], building[2], true, null);
+                set.add(leftPoint);
+                set.add(new Point(building[1], building[2], false, leftPoint));
+            }
+
+            Iterator<Point> ite = set.tailSet(new Point(-1, 0, true, null)).iterator();
+            Point lastPoint = null;
+            while (ite.hasNext())
+            {
+                Point curPoint = ite.next();
+                if ()
+            }
+
+            Integer lastHeight = 0;
+            Iterator<Point> iterator = set.iterator();
+            while (iterator.hasNext()){
+                Point curPoint = iterator.next();
+                if (curPoint.isLeft){
+                    heights.add(curPoint);
+                } else{
+                    heights.remove(curPoint.pariPoint);
+                }
+
+                if (heights.size()==0){
+                    anslst.add(curPoint.getList(0));
+                    lastHeight = 0;
+                }else {
+                    Point maxHeight = heights.stream().max(Point::heightCompareTo).get();
+                    if (maxHeight.height!=lastHeight){
+                        anslst.add(curPoint.getList(maxHeight.height));
+                        lastHeight = maxHeight.height;
+                    }
                 }
             }
-            preNode = treeNode;
+            return anslst;
         }
 
-        return lst;
     }
 
-    //当前两个区间是否是连续且高度相同，如果是则不需要加到结果中
-    private boolean compare(TreeNode preNode, TreeNode curNode){
-        if (preNode.right==curNode.left){
-            int preHeight = preNode.lazVal>0? preNode.lazVal: preNode.val;
-            int curHeight = curNode.lazVal>0? curNode.lazVal: curNode.val;
+    public class SolutionWithSegmentTree {
+        // 坐标与高度对应的MAP
+        HashMap<Integer, Integer> map = new HashMap<>();
+        HashMap<Integer, Integer> idxToPos = new HashMap<>();
 
-            return preHeight==curHeight;
-        }
-        return false;
-    }
+        // 坐标点集合，按从小到大
+        Set<Integer> set = new TreeSet<>();
 
-    private void addTreeNode(List<List<Integer>> lst, TreeNode node){
-        lst.add(getKeyPoint(node.left, node.lazVal>0? node.lazVal: node.val));
-    }
+        //保存结果子区间的数组
+        List<TreeNode> resultList = new ArrayList<>();
 
-    private List<Integer> getKeyPoint(int x, int h) {
-        List<Integer> keyPoint = new ArrayList<>();
-        keyPoint.add(x);
-        keyPoint.add(h);
-        return keyPoint;
-    }
+        public List<List<Integer>> getSkyline(int[][] buildings) {
+            if (buildings == null || buildings.length == 0) {
+                return null;
+            }
 
-    private void createHeightMap(int pos, int height) {
-        if (map.containsKey(pos)) {
-            map.put(pos, Math.max(map.get(pos), height));
-        } else {
-            map.put(pos, height);
-        }
-    }
+            //建树
+            buildTree(buildings);
+            //更新
+            for (int[] building : buildings) {
+                update(1, building[0], building[1] - 1, building[2]);
+            }
+            //查询，查询到所有子区间对应的值，再对子区间进行去重处理
+            query(1, min, max);
+            Collections.sort(resultList, (o1, o2) -> {
+                return o1.left - o2.left;
+            });
 
-    TreeNode[] tree;
-    int size;
-    int max;
-    int min;
+            List<List<Integer>> lst = new ArrayList<List<Integer>>();
+            addTreeNode(lst, resultList.get(0));
+            TreeNode preNode = null;
+            for (TreeNode treeNode : resultList) {
+                if (preNode == null) {
+                    addTreeNode(lst, treeNode);
+                } else {
+                    if (!compare(preNode, treeNode)) {
+                        addTreeNode(lst, treeNode);
+                    }
+                }
+                preNode = treeNode;
+            }
 
-    private void buildTree(int[][] buildings) {
-        for (int[] building : buildings) {
-            set.add(building[0]);
-            set.add(building[1]);
-        }
-        max = set.stream().max(Integer::compareTo).get();
-        min = set.stream().min(Integer::compareTo).get();
-
-        size = max - min + 1;
-        tree = new TreeNode[size * 4];
-        buildTree(1, min, max);
-    }
-
-    private void query(int i, int left, int right){
-        if (i>=size*4){
-            return;
+            return lst;
         }
 
-        TreeNode curNode = tree[i];
-        if (curNode==null) return;
+        //当前两个区间是否是连续且高度相同，如果是则不需要加到结果中
+        private boolean compare(TreeNode preNode, TreeNode curNode) {
+            if (preNode.right == curNode.left) {
+                int preHeight = preNode.lazVal > 0 ? preNode.lazVal : preNode.val;
+                int curHeight = curNode.lazVal > 0 ? curNode.lazVal : curNode.val;
 
-        //没有交集
-        if (curNode.left>right || curNode.right<left){
-            return;
+                return preHeight == curHeight;
+            }
+            return false;
         }
 
-        //叶子节点，直接更新
-        if (curNode.left==curNode.right){
-            resultList.add(curNode);
-            return;
+        private void addTreeNode(List<List<Integer>> lst, TreeNode node) {
+            lst.add(getKeyPoint(node.left, node.lazVal > 0 ? node.lazVal : node.val));
         }
 
-        //区间相同，且有lazVal直接返回，不需要看子区间
-        if (left==curNode.left && right==curNode.right && curNode.lazVal>0){
-            resultList.add(curNode);
-            return;
+        private List<Integer> getKeyPoint(int x, int h) {
+            List<Integer> keyPoint = new ArrayList<>();
+            keyPoint.add(x);
+            keyPoint.add(h);
+            return keyPoint;
         }
 
-        query(2*i, left, right);
-        query(2*i+1, left, right);
-    }
-
-    private void update(int i, int left, int right, int val) {
-        if (i >= size * 4) {
-            return;
-        }
-        TreeNode curNode = tree[i];
-        if (curNode == null) {
-            return;
-        }
-
-        //没有交集，由于是左闭右开，所以可以用左值与右值相等也并不算是有交集
-        if (curNode.left>right || curNode.right<left){
-            return;
-        }
-
-        //叶子节点，直接更新
-        if (curNode.left==curNode.right){
-            curNode.val = Math.max(curNode.val, val);
-            return;
-        }
-
-        //更新的时候只要更新区间比线段树区间大，就可以更新lazVal
-        if (left<=curNode.left && right>=curNode.right){
-            curNode.lazVal = Math.max(curNode.lazVal, val);
-            return;
-        }
-
-        //如果不相等，那就往下更新吧,当前有lazVal标记那就清掉吧，意味着后面如果要查找，同样需要往子节点去查找获取值
-        curNode.lazVal = 0;
-        update(2*i, left, right, val);
-        update(2*i+1, left, right, val);
-    }
-
-    private void buildTree(int i, int left, int right) {
-        if (left <= right) {
-            TreeNode node = new TreeNode(left, right);
-            tree[i] = node;
-            if (left == right) {
-                return;
+        private void createHeightMap(int pos, int height) {
+            if (map.containsKey(pos)) {
+                map.put(pos, Math.max(map.get(pos), height));
             } else {
-                int mid = (left + right) >> 1;
-                buildTree(2 * i, left, mid);
-                buildTree(2 * i + 1, mid + 1, right);
+                map.put(pos, height);
             }
         }
-    }
 
-    public class TreeNode{
-        int left;
-        int right;
-        int val;
-        int lazVal;
+        TreeNode[] tree;
+        int size;
+        int max;
+        int min;
 
-        public TreeNode(int left, int right) {
-            this.left = left;
-            this.right = right;
+        private void buildTree(int[][] buildings) {
+            for (int[] building : buildings) {
+                set.add(building[0]);
+                set.add(building[1]);
+            }
+            max = set.stream().max(Integer::compareTo).get();
+            min = set.stream().min(Integer::compareTo).get();
+
+            size = max - min + 1;
+            tree = new TreeNode[size * 4];
+            buildTree(1, min, max);
+        }
+
+        private void query(int i, int left, int right) {
+            if (i >= size * 4) {
+                return;
+            }
+
+            TreeNode curNode = tree[i];
+            if (curNode == null) return;
+
+            //没有交集
+            if (curNode.left > right || curNode.right < left) {
+                return;
+            }
+
+            //叶子节点，直接更新
+            if (curNode.left == curNode.right) {
+                resultList.add(curNode);
+                return;
+            }
+
+            //区间相同，且有lazVal直接返回，不需要看子区间
+            if (left == curNode.left && right == curNode.right && curNode.lazVal > 0) {
+                resultList.add(curNode);
+                return;
+            }
+
+            query(2 * i, left, right);
+            query(2 * i + 1, left, right);
+        }
+
+        private void update(int i, int left, int right, int val) {
+            if (i >= size * 4) {
+                return;
+            }
+            TreeNode curNode = tree[i];
+            if (curNode == null) {
+                return;
+            }
+
+            //没有交集，由于是左闭右开，所以可以用左值与右值相等也并不算是有交集
+            if (curNode.left > right || curNode.right < left) {
+                return;
+            }
+
+            //叶子节点，直接更新
+            if (curNode.left == curNode.right) {
+                curNode.val = Math.max(curNode.val, val);
+                return;
+            }
+
+            //更新的时候只要更新区间比线段树区间大，就可以更新lazVal
+            if (left <= curNode.left && right >= curNode.right) {
+                curNode.lazVal = Math.max(curNode.lazVal, val);
+                return;
+            }
+
+            //如果不相等，那就往下更新吧,当前有lazVal标记那就清掉吧，意味着后面如果要查找，同样需要往子节点去查找获取值
+            curNode.lazVal = 0;
+            update(2 * i, left, right, val);
+            update(2 * i + 1, left, right, val);
+        }
+
+        private void buildTree(int i, int left, int right) {
+            if (left <= right) {
+                TreeNode node = new TreeNode(left, right);
+                tree[i] = node;
+                if (left == right) {
+                    return;
+                } else {
+                    int mid = (left + right) >> 1;
+                    buildTree(2 * i, left, mid);
+                    buildTree(2 * i + 1, mid + 1, right);
+                }
+            }
+        }
+
+        public class TreeNode {
+            int left;
+            int right;
+            int val;
+            int lazVal;
+
+            public TreeNode(int left, int right) {
+                this.left = left;
+                this.right = right;
+            }
         }
     }
 }
