@@ -24,9 +24,45 @@
 
 
 //leetcode submit region begin(Prohibit modification and deletion)
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
 class Solution {
     public boolean containsNearbyAlmostDuplicate(int[] nums, int k, int t) {
+        if (nums==null || nums.length<=1){
+            return false;
+        }
 
+        TreeSet<Integer> set = new TreeSet<>();
+        for (int i = 0; i < nums.length; i++) {
+            int key = nums[i];
+            Integer s = set.ceiling(key);
+            if (s!=null && checkDistance(s, key, t)){
+                return true;
+            }
+            s = set.floor(key);
+            if (s!=null && checkDistance(key, s, t)){
+                return true;
+            }
+
+            set.add(key);
+            if (set.size()>k){
+                set.remove(nums[i-k]);
+            }
+        }
+        return false;
+    }
+
+    boolean checkDistance(int larger, int small, int t) {
+        if (larger >= Integer.MIN_VALUE + t && larger<=Integer.MAX_VALUE-t) {
+            return small >= larger - t && small <= larger +t;
+        } else if (larger > Integer.MAX_VALUE - t){
+            return small>= larger-t;
+        } else {
+            return small <= larger+t;
+        }
     }
 }
 //leetcode submit region end(Prohibit modification and deletion)

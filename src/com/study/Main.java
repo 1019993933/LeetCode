@@ -6,7 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.openjdk.jol.info.ClassLayout;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class Main {
 
@@ -106,5 +108,12 @@ public class Main {
         }
 
         return newhead;
+    }
+
+    @Test
+    public void doTest()
+    {
+        List<Integer> lst = new ArrayList<>();
+        lst.forEach(System.out::println);
     }
 }
